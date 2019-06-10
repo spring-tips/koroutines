@@ -1,14 +1,26 @@
 package koroutines
 
+import io.r2dbc.spi.ConnectionFactories
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
 import org.springframework.boot.autoconfigure.SpringBootApplication
-import java.math.BigInteger
+import org.springframework.boot.runApplication
+import org.springframework.context.support.beans
+import org.springframework.core.env.Environment
+import org.springframework.core.env.get
+import org.springframework.data.annotation.Id
+import org.springframework.data.r2dbc.core.DatabaseClient
+import org.springframework.data.r2dbc.core.asType
+import org.springframework.data.r2dbc.core.awaitOneOrNull
+import org.springframework.data.r2dbc.core.flow
+import org.springframework.web.reactive.function.server.ServerResponse
+import org.springframework.web.reactive.function.server.bodyAndAwait
+import org.springframework.web.reactive.function.server.bodyFlowAndAwait
+import org.springframework.web.reactive.function.server.coRouter
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
-import kotlin.coroutines.CoroutineContext
 
 
 @SpringBootApplication
@@ -35,7 +47,7 @@ fun main(args: Array<String>) {
 
 	fun one() {
 
-		GlobalScope.launch  {
+		GlobalScope.launch {
 			delay(1_000)
 			println("hello world")
 		}
@@ -111,8 +123,45 @@ fun main(args: Array<String>) {
 
 	fun seven() {
 
+		data class Reservation(@Id val id: Integer, val name: String)
 
-		Thread.sleep(30_1000)
+		class ReservationRepository(private val databaseClient: DatabaseClient) {
+
+			suspend fun findOne(name: String): Reservation? = databaseClient
+					.execute()
+					.sql("SELECT * FROM reservation WHERE name = :name ")
+					.bind("name", name)
+					.asType<Reservation>()
+					.fetch()
+					.awaitOneOrNull()
+
+			fun all(): Flow<Reservation> = this.databaseClient.select().from("reservation").asType<Reservation>().fetch().flow()
+		}
+
+		runApplication<KoroutinesApplication>(*args) {
+			addInitializers(beans {
+				bean {
+					val env = ref<Environment>()
+					val cs = env["spring.r2dbc.url"]
+					ConnectionFactories.get(cs!!)
+				}
+				bean {
+					val dbc = ref<DatabaseClient>()
+					ReservationRepository(dbc)
+				}
+				bean {
+					val rr = ref<ReservationRepository>()
+					coRouter {
+						GET("/reservations") { ServerResponse.ok().bodyFlowAndAwait(rr.all()) }
+						GET("/reservations/{name}") {
+							val body: Reservation = rr.findOne(it.pathVariable("name"))
+									?: throw IllegalArgumentException("the name is invalid")
+							ServerResponse.ok().bodyAndAwait(body)
+						}
+					}
+				}
+			})
+		}
 	}
 
 	seven()
