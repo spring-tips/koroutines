@@ -19,6 +19,8 @@ import org.springframework.web.reactive.function.server.ServerResponse
 import org.springframework.web.reactive.function.server.bodyAndAwait
 import org.springframework.web.reactive.function.server.bodyFlowAndAwait
 import org.springframework.web.reactive.function.server.coRouter
+import java.net.URL
+import java.time.Instant
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -33,6 +35,7 @@ class KoroutinesApplication
  * function can suspend its execution at some point and resume later on.
  *
  * <OL>
+ *  <li> https://kotlinlang.org/docs/reference/coroutines/basics.html </li>
  *  <li> https://medium.com/@elizarov/blocking-threads-suspending-coroutines-d33e11bf4761 </li>
  *  <li> https://medium.com/@elizarov/cold-flows-hot-channels-d74769805f9 </li>
  *  <li> https://medium.com/@elizarov/simple-design-of-kotlin-flow-4725e7398c4c </li>
@@ -40,6 +43,8 @@ class KoroutinesApplication
  *  <li> https://kotlinlang.org/docs/tutorials/coroutines/async-programming.html </li>
  *  <li> https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/-flow/ </li>
  *  <li> https://spring.io/blog/2019/04/12/going-reactive-with-spring-coroutines-and-kotlin-flow </li>
+ *  <li> https://github.com/Kotlin/KEEP/blob/master/proposals/coroutines.md#use-cases </Li>
+ *  <li> https://github.com/Kotlin/kotlinx.coroutines/blob/master/coroutines-guide.md</li>
  * </OL>
  */
 @FlowPreview
@@ -123,6 +128,21 @@ fun main(args: Array<String>) {
 
 	fun seven() {
 
+		suspend fun getServerTime() =
+				URL("http://worldclockapi.com/api/json/utc/now".trim()).readText()
+
+
+		println("now: ${Instant.now()}")
+		runBlocking { println(getServerTime()) }
+		println("now: ${Instant.now()}")
+
+		Thread.sleep(1_000)
+	}
+
+	seven()
+
+	fun eight() {
+
 		data class Reservation(@Id val id: Integer, val name: String)
 
 		class ReservationRepository(private val databaseClient: DatabaseClient) {
@@ -163,8 +183,6 @@ fun main(args: Array<String>) {
 			})
 		}
 	}
-
-	seven()
 
 
 }
