@@ -19,9 +19,7 @@ import org.springframework.web.reactive.function.server.ServerResponse
 import org.springframework.web.reactive.function.server.bodyAndAwait
 import org.springframework.web.reactive.function.server.bodyFlowAndAwait
 import org.springframework.web.reactive.function.server.coRouter
-import java.net.URL
 import java.time.Instant
-import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 
 
@@ -50,27 +48,32 @@ class KoroutinesApplication
 @FlowPreview
 fun main(args: Array<String>) {
 
+	fun note(msg: String? = "") =
+			println("${Thread.currentThread().name} : $msg ${if (msg != null && msg != "") "at" else ""} ${Instant.now()}".trim())
+
 	fun one() {
 
 		GlobalScope.launch {
 			delay(1_000)
-			println("hello world")
+			note("hello world")
 		}
 
-		Thread.sleep(2_000)
-		println("start")
+		note("start")
 	}
 
 	fun two() {
+		note("before launch")
 		GlobalScope.launch {
 			delay(1_000)
-			println("hello world")
+			note("hello world")
 		}
+		note("after launch")
 
+		note("before runBlocking")
 		runBlocking {
 			delay(2_000)
 		}
-		println("start")
+		note("after runBlocking")
 	}
 
 	fun three() {
@@ -79,7 +82,7 @@ fun main(args: Array<String>) {
 			GlobalScope.launch {
 				atomicNumber.addAndGet(i)
 			}
-		println(atomicNumber.get())
+		note("${atomicNumber.get()}")
 	}
 
 	fun four() {
@@ -91,7 +94,7 @@ fun main(args: Array<String>) {
 		}
 		runBlocking {
 			val sum = deferred.sumBy { it.await() }
-			print("Sum: $sum")
+			note("Sum: $sum")
 		}
 	}
 
@@ -101,14 +104,12 @@ fun main(args: Array<String>) {
 			return n
 		}
 
-		val deferred = (1..1_000_000).map { n ->
-			GlobalScope.async {
-				sleepAndMap(n)
-			}
+		val deferred = (1..1_000_000).map {
+			GlobalScope.async { sleepAndMap(it) }
 		}
 		runBlocking {
 			val sum = deferred.sumBy { it.await() }
-			print("Sum: $sum")
+			note("Sum: $sum")
 		}
 	}
 
@@ -120,30 +121,24 @@ fun main(args: Array<String>) {
 			}
 		}
 		runBlocking {
-			ints.collect { println("$it @ ${Date(System.currentTimeMillis()).toInstant()} ") }
+			ints.collect { note("$it") }
 		}
-		Thread.sleep(10_000)
 	}
-
 
 	fun seven() {
-
-		suspend fun getServerTime() =
-				URL("http://worldclockapi.com/api/json/utc/now".trim()).readText()
-
-
-		println("now: ${Instant.now()}")
-		runBlocking { println(getServerTime()) }
-		println("now: ${Instant.now()}")
-
-		Thread.sleep(1_000)
+		note("seven start")
+		GlobalScope.launch {
+			note("launch start")
+			delay(1_000)
+			note("launch finish")
+		}
+		note("seven stop")
 	}
 
-	seven()
 
 	fun eight() {
 
-		data class Reservation(@Id val id: Integer, val name: String)
+		data class Reservation(@Id val id: Int, val name: String)
 
 		class ReservationRepository(private val databaseClient: DatabaseClient) {
 
@@ -161,13 +156,11 @@ fun main(args: Array<String>) {
 		runApplication<KoroutinesApplication>(*args) {
 			addInitializers(beans {
 				bean {
-					val env = ref<Environment>()
-					val cs = env["spring.r2dbc.url"]
-					ConnectionFactories.get(cs!!)
+					val url = ref<Environment>()["spring.r2dbc.url"]!!
+					ConnectionFactories.get(url)
 				}
 				bean {
-					val dbc = ref<DatabaseClient>()
-					ReservationRepository(dbc)
+					ReservationRepository(ref())
 				}
 				bean {
 					val rr = ref<ReservationRepository>()
@@ -184,5 +177,8 @@ fun main(args: Array<String>) {
 		}
 	}
 
+	one()
+
+	Thread.sleep(10_000)
 
 }
