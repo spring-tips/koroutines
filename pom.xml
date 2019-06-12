@@ -24,38 +24,6 @@
     <dependencies>
 
 
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-webflux</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.module</groupId>
-            <artifactId>jackson-module-kotlin</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.jetbrains.kotlin</groupId>
-            <artifactId>kotlin-reflect</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.jetbrains.kotlin</groupId>
-            <artifactId>kotlin-stdlib-jdk8</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.jetbrains.kotlinx</groupId>
-            <artifactId>kotlinx-coroutines-core</artifactId>
-            <version>${kotlinx-coroutines.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.jetbrains.kotlinx</groupId>
-            <artifactId>kotlinx-coroutines-reactor</artifactId>
-            <version>${kotlinx-coroutines.version}</version>
-        </dependency>
-        <!--        compile("org.jetbrains.kotlinx:kotlinx-coroutines-core:${coroutinesVersion}")-->
-        <!--        compile("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:${coroutinesVersion}")-->
-
-        <!--  -->
-
-
         <!--  -->
         <dependency>
             <groupId>io.r2dbc</groupId>
@@ -74,8 +42,43 @@
             <artifactId>r2dbc-postgresql</artifactId>
         </dependency>
 
-
         <!--  -->
+
+        <!--        -->
+        <dependency>
+            <groupId>org.jetbrains.kotlinx</groupId>
+            <artifactId>kotlinx-coroutines-core</artifactId>
+            <version>${kotlinx-coroutines.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains.kotlinx</groupId>
+            <artifactId>kotlinx-coroutines-reactor</artifactId>
+            <version>${kotlinx-coroutines.version}</version>
+        </dependency>
+
+        <!-- -->
+        <!--
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-mongodb-reactive</artifactId>
+        </dependency>
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webflux</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.module</groupId>
+            <artifactId>jackson-module-kotlin</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains.kotlin</groupId>
+            <artifactId>kotlin-reflect</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains.kotlin</groupId>
+            <artifactId>kotlin-stdlib-jdk8</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -98,18 +101,6 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-    <!--  -->
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.springframework.boot.experimental</groupId>
-                <artifactId>spring-boot-dependencies-r2dbc</artifactId>
-                <version>0.1.0.M1</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
 
     <build>
         <sourceDirectory>${project.basedir}/src/main/kotlin</sourceDirectory>
@@ -126,7 +117,6 @@
                 <configuration>
                     <args>
                         <arg>-Xjsr305=strict</arg>
-                        <arg>-Xcoroutines=enable</arg>
                     </args>
                     <compilerPlugins>
                         <plugin>spring</plugin>
@@ -142,12 +132,22 @@
             </plugin>
         </plugins>
     </build>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.boot.experimental</groupId>
+                <artifactId>spring-boot-dependencies-r2dbc</artifactId>
+                <version>0.1.0.M1</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <!--  -->
+
 
     <repositories>
-        <repository>
-            <id>central</id>
-            <url>http://jcenter.bintray.com</url>
-        </repository>
         <repository>
             <id>spring-snapshots</id>
             <name>Spring Snapshots</name>
