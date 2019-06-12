@@ -76,14 +76,7 @@ fun main(args: Array<String>) {
 		note("after runBlocking")
 	}
 
-	fun three() {
-		val atomicNumber = AtomicInteger()
-		for (i in 1..1_000_000)
-			GlobalScope.launch {
-				atomicNumber.addAndGet(i)
-			}
-		note("${atomicNumber.get()}")
-	}
+
 
 	fun four() {
 		val deferred = (1..1_000_000).map { n ->
@@ -176,8 +169,6 @@ fun main(args: Array<String>) {
 			})
 		}
 	}
-
-	one()
 
 	Thread.sleep(10_000)
 
